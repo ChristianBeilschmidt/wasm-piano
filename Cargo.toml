@@ -1,28 +1,20 @@
 [package]
 name = "wasm-piano"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-crate-type = ["cdylib"]
+version = "0.2.0"
+edition = "2024"
 
 [dependencies]
-wasm-bindgen = "0.2"
-yew = { version = "0.21", features = ["csr"] }
+leptos = { version = "0.8", features = ["csr"] }
 
 [dependencies.web-sys]
 version = "0.3"
 features = [
     "AudioContext",
-    "BaseAudioContext",
-    "AudioContextState",
     "AudioDestinationNode",
+    "AudioParam",
+    "GainNode",
     "OscillatorNode",
     "OscillatorType",
-    "AudioNode",
-    "AudioParam",
-    "AudioScheduledSourceNode",
-    "GainNode",
-    "HtmlCanvasElement",
-    "CanvasRenderingContext2d",
+    "PointerEvent",
+    "Window",
 ]

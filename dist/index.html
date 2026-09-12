@@ -3,18 +3,130 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yew Bass Piano</title>
-    <link rel="stylesheet" href="style.css" />
-  <link rel="modulepreload" href="/wasm-piano-75344e952d6e2d6e.js" crossorigin="anonymous" integrity="sha384-9XZOA7/HzzR8PJ5UzLhQaNlruq37hk7pPJhYcIY2xRZ2mrdyBW5P60xbj+GZzHZt"><link rel="preload" href="/wasm-piano-75344e952d6e2d6e_bg.wasm" crossorigin="anonymous" integrity="sha384-CM3o8Iy0HGAHhh5NVfK3d6DZYgoOv6erQJA78utEbaeiED8mJV1RxGYFH3aKhgMb" as="fetch" type="application/wasm"></head>
+    <title>Rust 2024 Leptos Piano</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #1a1a1e;
+        color: #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        width: 720px;
+        height: 520px;
+        background: #242428;
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        border: 1px solid #333;
+      }
+
+      /* Top Pane: Bass Clef Staff */
+      .top-pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #fafafa;
+        color: #111;
+        border-bottom: 2px solid #333;
+        position: relative;
+      }
+
+      .pane-label {
+        position: absolute;
+        top: 10px;
+        left: 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666;
+      }
+
+      /* Bottom Pane: Keyboard */
+      .bottom-pane {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 24px;
+        background: #242428;
+        position: relative;
+      }
+
+      .bottom-pane .pane-label {
+        color: #888;
+      }
+
+      .keyboard {
+        position: relative;
+        display: flex;
+        height: 180px;
+        width: 600px;
+      }
+
+      .key {
+        cursor: pointer;
+        border-radius: 0 0 4px 4px;
+        transition: background-color 0.05s ease;
+      }
+
+      .white-key {
+        width: 40px;
+        height: 180px;
+        background: #ffffff;
+        border: 1px solid #ccc;
+        border-top: none;
+        box-shadow:
+          inset 0 -4px 0 #ddd,
+          0 2px 4px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+      }
+
+      .white-key:active,
+      .white-key.active {
+        background: #93c5fd;
+        box-shadow: inset 0 -2px 0 #60a5fa;
+      }
+
+      .black-key {
+        width: 24px;
+        height: 110px;
+        background: #1e1e24;
+        position: absolute;
+        z-index: 2;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+        border: 1px solid #000;
+      }
+
+      .black-key:active,
+      .black-key.active {
+        background: #2563eb;
+      }
+    </style>
+  <link rel="modulepreload" href="/wasm-piano-11930cfc00d49378.js" crossorigin="anonymous" integrity="sha384-UpkE+LtOkkaK6fAOM0ShuXEbyu6LQ9MkkYG0HglOEw2M1MjDLWLrfpUL3RhZNxqb"><link rel="preload" href="/wasm-piano-11930cfc00d49378_bg.wasm" crossorigin="anonymous" integrity="sha384-8U/UTkf2mkh9iZdmj+BeFJGeqawz6LQmUiO1fpoT5R9HJcqI+HR+bMEUtdMVo4Ik" as="fetch" type="application/wasm"></head>
   <body>
-    <script type="module">
-      import init from "./pkg/wasm_piano.js";
-      init();
-    </script>
-  
 <script type="module">
-import init, * as bindings from '/wasm-piano-75344e952d6e2d6e.js';
-const wasm = await init({ module_or_path: '/wasm-piano-75344e952d6e2d6e_bg.wasm' });
+import init, * as bindings from '/wasm-piano-11930cfc00d49378.js';
+const wasm = await init({ module_or_path: '/wasm-piano-11930cfc00d49378_bg.wasm' });
 
 
 window.wasmBindings = bindings;
