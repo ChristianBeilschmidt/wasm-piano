@@ -8,16 +8,11 @@ crate-type = ["cdylib"]
 
 [dependencies]
 wasm-bindgen = "0.2"
+yew = { version = "0.21", features = ["csr"] }
 
 [dependencies.web-sys]
 version = "0.3"
 features = [
-    "Document",
-    "Element",
-    "HtmlElement",
-    "HtmlCanvasElement",
-    "CanvasRenderingContext2d",
-    "Window",
     "AudioContext",
     "BaseAudioContext",
     "AudioContextState",
@@ -28,5 +23,6 @@ features = [
     "AudioParam",
     "AudioScheduledSourceNode",
     "GainNode",
-    "HtmlCollection",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
 ]
