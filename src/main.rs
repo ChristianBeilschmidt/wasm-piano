@@ -1,81 +1,9 @@
 use leptos::mount::mount_to_body;
 use leptos::prelude::*;
-use std::cell::RefCell;
-use std::collections::HashMap;
 
-// Global thread-local state for managing active Web Audio Context nodes
-thread_local! {
-    static AUDIO_STATE: RefCell<AudioState> = RefCell::new(AudioState::new());
-}
+use crate::audio::{play_note_audio, stop_note_audio};
 
-struct AudioState {
-    ctx: Option<web_sys::AudioContext>,
-    oscillators: HashMap<u8, (web_sys::OscillatorNode, web_sys::GainNode)>,
-}
-
-impl AudioState {
-    fn new() -> Self {
-        Self {
-            ctx: None,
-            oscillators: HashMap::new(),
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Web Audio API Synthesis
-// -----------------------------------------------------------------------------
-
-fn play_note_audio(midi: u8) {
-    AUDIO_STATE.with(|state| {
-        let mut state = state.borrow_mut();
-
-        let ctx = if let Some(ctx) = &state.ctx {
-            let _ = ctx.resume();
-            ctx.clone()
-        } else {
-            let ctx = web_sys::AudioContext::new().unwrap();
-            state.ctx = Some(ctx.clone());
-            ctx
-        };
-
-        // Convert MIDI note number to frequency (Hz)
-        let freq = 440.0 * 2.0_f32.powf((midi as f32 - 69.0) / 12.0);
-
-        let osc = ctx.create_oscillator().unwrap();
-        let gain = ctx.create_gain().unwrap();
-
-        osc.set_type(web_sys::OscillatorType::Triangle);
-        osc.frequency().set_value(freq);
-
-        let now = ctx.current_time();
-        gain.gain().set_value_at_time(0.0, now).unwrap();
-        gain.gain()
-            .linear_ramp_to_value_at_time(0.4, now + 0.02)
-            .unwrap();
-
-        osc.connect_with_audio_node(&gain).unwrap();
-        gain.connect_with_audio_node(&ctx.destination()).unwrap();
-        osc.start().unwrap();
-
-        state.oscillators.insert(midi, (osc, gain));
-    });
-}
-
-fn stop_note_audio(midi: u8) {
-    AUDIO_STATE.with(|state| {
-        let mut state = state.borrow_mut();
-        if let Some((osc, gain)) = state.oscillators.remove(&midi) {
-            if let Some(ctx) = &state.ctx {
-                let now = ctx.current_time();
-                let _ = gain.gain().cancel_scheduled_values(now);
-                let _ = gain.gain().set_value_at_time(gain.gain().value(), now);
-                let _ = gain.gain().linear_ramp_to_value_at_time(0.0, now + 0.08);
-                let _ = osc.stop_with_when(now + 0.08);
-            }
-        }
-    });
-}
+mod audio;
 
 // -----------------------------------------------------------------------------
 // Music Theory & Diatonic Mapping Helpers

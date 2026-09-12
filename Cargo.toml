@@ -12,6 +12,8 @@ features = [
     "AudioContext",
     "AudioDestinationNode",
     "AudioParam",
+    "BiquadFilterNode",
+    "BiquadFilterType",
     "GainNode",
     "OscillatorNode",
     "OscillatorType",
