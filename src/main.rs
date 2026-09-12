@@ -113,7 +113,9 @@ fn generate_keys() -> Vec<KeyDef> {
     keys
 }
 
-/// Maps a MIDI note to diatonic staff steps relative to C2 (0) and detects accidentals
+/// Maps a MIDI note to diatonic staff steps relative to C2 (0) and detects accidentals.
+/// The bass staff is anchored on G2 at the bottom line and A3 at the top line, so each
+/// diatonic step changes vertical position by 10px.
 fn midi_to_step(midi: u8) -> (i32, bool) {
     let note_idx = midi as i32 - 36; // C2 is index 0
     let octave = note_idx / 12;
@@ -139,81 +141,104 @@ fn midi_to_step(midi: u8) -> (i32, bool) {
     (step, is_sharp)
 }
 
-// -----------------------------------------------------------------------------
-// Leptos 0.8 UI Components
-// -----------------------------------------------------------------------------
-
 #[component]
 fn Staff(active_note: ReadSignal<Option<u8>>) -> impl IntoView {
+    let is_active = move || active_note.get().is_some();
+
+    let note_data = move || {
+        active_note.get().map(|midi| {
+            let (step, is_sharp) = midi_to_step(midi);
+            let y = 100 - (step - 8) * 10;
+            (y, is_sharp)
+        })
+    };
+
+    let note_y = move || note_data().map(|(y, _)| y).unwrap_or(100);
+    let note_sharp = move || note_data().map(|(_, sharp)| sharp).unwrap_or(false);
+
+    // Dynamic visibility for ledger lines
+    let ledger_40_vis = move || {
+        if is_active() && note_y() <= 40 {
+            "visible"
+        } else {
+            "hidden"
+        }
+    };
+    let ledger_160_vis = move || {
+        if is_active() && note_y() >= 160 {
+            "visible"
+        } else {
+            "hidden"
+        }
+    };
+    let ledger_180_vis = move || {
+        if is_active() && note_y() >= 180 {
+            "visible"
+        } else {
+            "hidden"
+        }
+    };
+
+    let note_vis = move || if is_active() { "visible" } else { "hidden" };
+    let sharp_vis = move || {
+        if is_active() && note_sharp() {
+            "visible"
+        } else {
+            "hidden"
+        }
+    };
+
+    // FIX 2: Use standard CSS transform properties routed through the CSS compositor
+    let note_style = move || {
+        format!(
+            "transform: translate(300px, {}px) rotate(-15deg); transform-box: fill-box; transform-origin: center;",
+            note_y()
+        )
+    };
+
     view! {
         <div class="top-pane">
             <span class="pane-label">"Bass Clef Visualization"</span>
-            <svg width="600" height="200" viewBox="0 0 600 200">
-                // Bass Clef Staff Lines: G2 (140), B2 (120), D3 (100), F3 (80), A3 (60)
-                <line x1="50" y1="60" x2="550" y2="60" stroke="#222" stroke-width="2"/>
-                <line x1="50" y1="80" x2="550" y2="80" stroke="#222" stroke-width="2"/>
-                <line x1="50" y1="100" x2="550" y2="100" stroke="#222" stroke-width="2"/>
-                <line x1="50" y1="120" x2="550" y2="120" stroke="#222" stroke-width="2"/>
-                <line x1="50" y1="140" x2="550" y2="140" stroke="#222" stroke-width="2"/>
+            <svg
+                width="600"
+                height="200"
+                viewBox="0 0 600 200"
+                // FIX 1: Containment prevents Firefox WebRender from slicing SVG into dirty-rect tiles
+                style="isolation: isolate; contain: paint;"
+            >
+                // FIX 3: Isolated group for static background elements
+                <g style="isolation: isolate;">
+                    <line x1="50" y1="60" x2="550" y2="60" stroke="#222" stroke-width="2"/>
+                    <line x1="50" y1="80" x2="550" y2="80" stroke="#222" stroke-width="2"/>
+                    <line x1="50" y1="100" x2="550" y2="100" stroke="#222" stroke-width="2"/>
+                    <line x1="50" y1="120" x2="550" y2="120" stroke="#222" stroke-width="2"/>
+                    <line x1="50" y1="140" x2="550" y2="140" stroke="#222" stroke-width="2"/>
+                    <text x="60" y="118" font-size="68" font-family="serif" fill="#222" pointer-events="none">"𝄢"</text>
+                </g>
 
-                // Bass Clef Symbol (Unicode 𝄢)
-                <text x="60" y="118" font-size="68" font-family="serif" fill="#222">"𝄢"</text>
+                // Static ledger lines with signal-driven visibility
+                <g style="isolation: isolate;">
+                    <line x1="280" y1="40" x2="320" y2="40" stroke="#222" stroke-width="2" visibility=ledger_40_vis/>
+                    <line x1="280" y1="160" x2="320" y2="160" stroke="#222" stroke-width="2" visibility=ledger_160_vis/>
+                    <line x1="280" y1="180" x2="320" y2="180" stroke="#222" stroke-width="2" visibility=ledger_180_vis/>
+                </g>
 
-                // Dynamically Render Played Note
-                {move || {
-                    active_note.get().map(|midi| {
-                        let (step, is_sharp) = midi_to_step(midi);
+                // Dynamic notehead rendered at origin (0,0) and positioned via CSS transform
+                <g style=note_style visibility=note_vis>
+                    <ellipse cx="0" cy="0" rx="11" ry="8" fill="#2563eb" />
+                </g>
 
-                        // D3 (MIDI 50, Step 8) rests on the middle staff line at Y=100.
-                        // Each step corresponds to 10px.
-                        let y_pos = 100 - (step - 8) * 10;
-
-                        // Calculate required ledger lines for notes outside the 5-line staff
-                        let mut ledger_lines = Vec::new();
-                        if y_pos <= 40 {
-                            let mut l_y = 40;
-                            while l_y >= y_pos {
-                                ledger_lines.push(l_y);
-                                l_y -= 20;
-                            }
-                        }
-                        if y_pos >= 160 {
-                            let mut l_y = 160;
-                            while l_y <= y_pos {
-                                ledger_lines.push(l_y);
-                                l_y += 20;
-                            }
-                        }
-
-                        view! {
-                            <g class="note">
-                                {ledger_lines.into_iter().map(|l_y| view! {
-                                    <line x1="280" y1=l_y x2="320" y2=l_y stroke="#222" stroke-width="2"/>
-                                }).collect_view()}
-
-                                // Rotating the ellipse gives an authentic musical note head appearance
-                                <ellipse
-                                    cx="300"
-                                    cy=y_pos
-                                    rx="11"
-                                    ry="8"
-                                    fill="#2563eb"
-                                    transform=format!("rotate(-15 300 {})", y_pos)
-                                />
-
-                                {if is_sharp {
-                                    view! {
-                                        <text x="268" y=y_pos + 7 font-size="24" font-weight="bold" fill="#2563eb">
-                                            "♯"
-                                        </text>
-                                    }.into_any()
-                                } else {
-                                    view! { <></> }.into_any()
-                                }}
-                            </g>
-                        }
-                    })
-                }}
+                // Accidental indicator
+                <text
+                    x="268"
+                    y=move || note_y() + 7
+                    font-size="24"
+                    font-weight="bold"
+                    fill="#2563eb"
+                    visibility=sharp_vis
+                >
+                    "♯"
+                </text>
             </svg>
         </div>
     }
@@ -243,7 +268,6 @@ fn Keyboard(set_active_note: WriteSignal<Option<u8>>) -> impl IntoView {
                     };
 
                     let on_up = move |_| {
-                        set_active_note.set(None);
                         stop_note_audio(midi);
                     };
 

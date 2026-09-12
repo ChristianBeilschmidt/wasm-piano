@@ -1,77 +1,117 @@
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  user-select: none;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: #1e1e1e;
-}
-
-#top-half {
-  height: 50vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1e;
+  color: #e0e0e0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f3f3f3;
-  border-bottom: 4px solid #333;
+  min-height: 100vh;
 }
 
-#staff-canvas {
-  background-color: #f3f3f3;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 720px;
+  height: 520px;
+  background: #242428;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  border: 1px solid #333;
 }
 
-#bottom-half {
-  height: 50vh;
-  background-color: #111;
+/* Top Pane: Bass Clef Staff */
+.top-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fafafa;
+  color: #111;
+  border-bottom: 2px solid #333;
+  position: relative;
+}
+
+.pane-label {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+}
+
+/* Bottom Pane: Keyboard */
+.bottom-pane {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 20px;
+  padding-top: 24px;
+  background: #242428;
+  position: relative;
 }
 
-.piano {
-  display: flex;
+.bottom-pane .pane-label {
+  color: #888;
+}
+
+.keyboard {
   position: relative;
-  width: 90%;
-  max-width: 1000px;
-  height: 80%;
+  display: flex;
+  top: 2rem;
+  height: 180px;
+  width: 600px;
 }
 
 .key {
   cursor: pointer;
-  user-select: none;
+  border-radius: 0 0 4px 4px;
+  transition: background-color 0.05s ease;
 }
 
-.key.white {
-  flex: 1;
-  background: white;
+.white-key {
+  width: 40px;
+  height: 180px;
+  background: #ffffff;
   border: 1px solid #ccc;
-  border-radius: 0 0 5px 5px;
-  height: 100%;
+  border-top: none;
+  box-shadow:
+    inset 0 -4px 0 #ddd,
+    0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 1;
-  box-shadow: inset 0 0 5px #ccc;
 }
 
-.key.white:active {
-  background: #e0e0e0;
+.white-key:active,
+.white-key.active {
+  background: #93c5fd;
+  box-shadow: inset 0 -2px 0 #60a5fa;
 }
 
-.key.black {
+.black-key {
+  width: 24px;
+  height: 110px;
+  background: #1e1e24;
   position: absolute;
-  width: 4.5%;
-  background: #222;
-  height: 60%;
   z-index: 2;
-  border-radius: 0 0 3px 3px;
-  box-shadow: inset 0 0 3px #000;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+  border: 1px solid #000;
 }
 
-.key.black:active {
-  background: #444;
+.black-key:active,
+.black-key.active {
+  background: #2563eb;
 }
